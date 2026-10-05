@@ -11,6 +11,9 @@ import org.example.employee_management.exception.ResourceNotFoundException;
 import org.example.employee_management.mapper.EmployeeMapper;
 import org.example.employee_management.repository.DepartmentRepository;
 import org.example.employee_management.repository.EmployeeRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +30,7 @@ public class EmployeeService {
     private final DepartmentRepository departmentRepository;
     private final EmployeeMapper mapper;
 
+    @CacheEvict(cacheNames = "employeeLists", allEntries = true)
     public EmployeeResponseDTO createEmployee(EmployeeRequestDTO dto){
 
         boolean emailExists = employeeRepository.existsByEmail(dto.getEmail());
@@ -51,6 +55,7 @@ public class EmployeeService {
 
         return response;
     }
+    @Cacheable(cacheNames = "employeeById", key = "#employeeId")
     public EmployeeResponseDTO getEmployeeById(Integer employeeId){
 
         Employee employee = employeeRepository.findById(employeeId).orElse(null);
@@ -63,6 +68,8 @@ public class EmployeeService {
 
         return response;
     }
+    @Cacheable(cacheNames = "employeeLists",
+            key = "#page + ':' + #size + ':' + #sortBy + ':' + #sortDir")
     public List<EmployeeResponseDTO> getAllEmployees(int page , int size, String sortBy, String sortDir){
 
         Sort sort;
@@ -80,6 +87,10 @@ public class EmployeeService {
 
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "employeeById", key = "#employeeId"),
+            @CacheEvict(cacheNames = "employeeLists", allEntries = true)
+    })
     public EmployeeResponseDTO updateEmployee(Integer employeeId, EmployeeRequestDTO dto){
 
         Employee employee = employeeRepository.findById(employeeId).orElse(null);
@@ -129,6 +140,10 @@ public class EmployeeService {
 
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "employeeById", key = "#employeeId"),
+            @CacheEvict(cacheNames = "employeeLists", allEntries = true)
+    })
     public void deleteEmployee(Integer employeeId){
         Employee employee = employeeRepository.findById(employeeId).orElse(null);
 

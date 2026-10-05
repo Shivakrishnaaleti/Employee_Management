@@ -6,18 +6,21 @@ import lombok.RequiredArgsConstructor;
 import org.example.employee_management.dto.employee.EmployeeRequestDTO;
 import org.example.employee_management.dto.employee.EmployeeResponseDTO;
 import org.example.employee_management.service.EmployeeService;
-import org.springframework.data.domain.Page;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.w3c.dom.stylesheets.LinkStyle;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import java.util.List;
 
 @RestController
 @RequestMapping("/employees")
 @RequiredArgsConstructor
+@Validated
 public class EmployeeController {
 
     private final EmployeeService service;
@@ -35,10 +38,11 @@ public class EmployeeController {
             description = "displaying all employees....")
     @GetMapping
     public ResponseEntity<List<EmployeeResponseDTO>> getAllEmployees(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "5") Integer size,
-            @RequestParam(defaultValue = "employeeName") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "5") @Min(1) @Max(100) int size,
+            @RequestParam(defaultValue = "employeeName")
+            @Pattern(regexp = "employeeId|employeeName|email|phone|salary") String sortBy,
+            @RequestParam(defaultValue = "asc") @Pattern(regexp = "(?i)asc|desc") String sortDir
     ){
         List<EmployeeResponseDTO> responseDTO = service.getAllEmployees(page, size, sortBy, sortDir);
 

@@ -9,11 +9,17 @@ import org.example.employee_management.service.DepartmentService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/departments")
 @RequiredArgsConstructor
+@Validated
 public class DepartmentController {
 
     private final DepartmentService service;
@@ -33,10 +39,11 @@ public class DepartmentController {
             description = "Displaying all departments .....")
     @GetMapping
     public ResponseEntity<Page<DepartmentResponseDTO>> getAllDepartments(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "5") Integer size,
-            @RequestParam(defaultValue = "departmentName") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "5") @Min(1) @Max(100) int size,
+            @RequestParam(defaultValue = "departmentName")
+            @Pattern(regexp = "departmentId|departmentName") String sortBy,
+            @RequestParam(defaultValue = "asc") @Pattern(regexp = "(?i)asc|desc") String sortDir
             )
     {
         Page<DepartmentResponseDTO> responseDTO = service.getAllDepartments(page, size, sortBy, sortDir);

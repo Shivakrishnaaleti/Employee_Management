@@ -5,11 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddressResponseDTO {
+public class AddressResponseDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Integer addressId;
     private String street;

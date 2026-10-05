@@ -1,6 +1,8 @@
 package org.example.employee_management.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -27,8 +29,8 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handlrDuplicateResource(DuplicateResourceException ex, HttpServletRequest request){
+    @ExceptionHandler({DuplicateResourceException.class, ResourceConflictException.class})
+    public ResponseEntity<ErrorResponse> handleConflict(RuntimeException ex, HttpServletRequest request){
 
         ErrorResponse response = new ErrorResponse();
 
@@ -69,6 +71,28 @@ public class GlobalExceptionHandler {
         return new  ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 
 
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
+        List<String> errors = ex.getConstraintViolations().stream()
+                .map(this::formatConstraintViolation)
+                .toList();
+
+        ErrorResponse response = new ErrorResponse(
+                LocalDateTime.now(),
+                String.valueOf(HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Validation Error",
+                request.getRequestURI(),
+                errors
+        );
+
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    private String formatConstraintViolation(ConstraintViolation<?> violation) {
+        return violation.getPropertyPath() + " : " + violation.getMessage();
     }
 
 
